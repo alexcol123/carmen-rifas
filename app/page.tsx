@@ -75,6 +75,7 @@ export default function RafflePostCreator() {
   const [subtitle, setSubtitle] = useState("PREMIOS DOBLES")
   const [description, setDescription] = useState("¡Primer número en salir→ GANA 🏆\nÚltimo número en salir→ GANA 🏆")
   const [price, setPrice] = useState("3")
+  const [footer, setFooter] = useState("🔥 ¡Corre que vuelan los números! 🚀")
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([])
   const [selectedBackground, setSelectedBackground] = useState(0)
   const [selectedGlass, setSelectedGlass] = useState(0)
@@ -93,6 +94,7 @@ export default function RafflePostCreator() {
       setSubtitle(config.subtitle || "PREMIOS DOBLES")
       setDescription(config.description || "¡Primer número en salir→ GANA 🏆\nÚltimo número en salir→ GANA 🏆")
       setPrice(config.price || "3")
+      setFooter(config.footer || "🔥 ¡Corre que vuelan los números! 🚀")
       setSelectedNumbers(config.selectedNumbers || [])
       setSelectedBackground(config.selectedBackground || 0)
       setSelectedGlass(config.selectedGlass || 0)
@@ -106,12 +108,13 @@ export default function RafflePostCreator() {
       subtitle,
       description,
       price,
+      footer,
       selectedNumbers,
       selectedBackground,
       selectedGlass
     }
     localStorage.setItem('rifaConfig', JSON.stringify(config))
-  }, [title, subtitle, description, price, selectedNumbers, selectedBackground, selectedGlass])
+  }, [title, subtitle, description, price, footer, selectedNumbers, selectedBackground, selectedGlass])
 
   const currentBackground = backgroundOptions[selectedBackground]
   const currentGlass = glassOptions[selectedGlass]
@@ -147,6 +150,7 @@ export default function RafflePostCreator() {
       setSubtitle("PREMIOS DOBLES")
       setDescription("¡Primer número en salir→ GANA 🏆\nÚltimo número en salir→ GANA 🏆")
       setPrice("3")
+      setFooter("🔥 ¡Corre que vuelan los números! 🚀")
       setSelectedNumbers([])
       setSelectedBackground(0)
       setSelectedGlass(0)
@@ -173,7 +177,7 @@ export default function RafflePostCreator() {
             backgroundRepeat: 'no-repeat'
           } : {}}
         >
-          <CardContent className="flex-1 h-full p-4">
+          <CardContent className="flex-1 h-full p-5">
             <div className={`${currentGlass.bg} backdrop-blur-sm border ${currentGlass.border} rounded-xl p-6 h-full flex flex-col justify-between space-y-6`}>
 
               {/* Top Section */}
@@ -210,7 +214,7 @@ export default function RafflePostCreator() {
 
               {/* Bottom Call to Action */}
               <div className="text-center">
-                <p className="text-lg md:text-2xl font-bold">🔥 ¡Corre que vuelan los números! 🚀</p>
+                <p className="text-lg md:text-2xl font-bold">{footer}</p>
               </div>
 
             </div>
@@ -288,6 +292,7 @@ export default function RafflePostCreator() {
                   ))}
                 </div>
               </div>
+
             </CardContent>
           )}
         </Card>
@@ -349,6 +354,16 @@ export default function RafflePostCreator() {
                   onChange={(e) => setPrice(e.target.value)}
                   placeholder="3"
                   type="number"
+                  className="h-8 text-sm bg-white text-gray-900 border-gray-300"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-gray-300 mb-1 block">Mensaje Final</label>
+                <Input
+                  value={footer}
+                  onChange={(e) => setFooter(e.target.value)}
+                  placeholder="🔥 ¡Corre que vuelan los números! 🚀"
                   className="h-8 text-sm bg-white text-gray-900 border-gray-300"
                 />
               </div>
