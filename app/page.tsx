@@ -1,12 +1,11 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { ImageIcon, ChevronDown, ChevronUp, Download } from "lucide-react"
-import html2canvas from "html2canvas"
+import { ImageIcon, ChevronDown, ChevronUp, Trash2 } from "lucide-react"
 
 type BackgroundOption = {
   name: string
@@ -44,7 +43,24 @@ const backgroundOptions: BackgroundOption[] = [
   { name: "Diseño 10", type: "image", file: "bg10.jpg", preview: "/backgrounds/bg10.jpg", accent: "text-yellow-300" },
   { name: "Diseño 11", type: "image", file: "bg11.jpg", preview: "/backgrounds/bg11.jpg", accent: "text-yellow-300" },
   { name: "Diseño 12", type: "image", file: "bg12.jpg", preview: "/backgrounds/bg12.jpg", accent: "text-yellow-300" },
-  { name: "Diseño 13", type: "image", file: "bg13.jpg", preview: "/backgrounds/bg13.jpg", accent: "text-yellow-300" }
+  { name: "Diseño 13", type: "image", file: "bg13.jpg", preview: "/backgrounds/bg13.jpg", accent: "text-yellow-300" },
+  { name: "Diseño 14", type: "image", file: "bg14.jpg", preview: "/backgrounds/bg14.jpg", accent: "text-yellow-300" },
+  { name: "Diseño 15", type: "image", file: "bg15.jpg", preview: "/backgrounds/bg15.jpg", accent: "text-yellow-300" },
+  { name: "Diseño 16", type: "image", file: "bg16.jpg", preview: "/backgrounds/bg16.jpg", accent: "text-yellow-300" },
+  { name: "Diseño 17", type: "image", file: "bg17.jpg", preview: "/backgrounds/bg17.jpg", accent: "text-yellow-300" },
+  { name: "Diseño 18", type: "image", file: "bg18.jpg", preview: "/backgrounds/bg18.jpg", accent: "text-yellow-300" },
+  { name: "Diseño 19", type: "image", file: "bg19.jpg", preview: "/backgrounds/bg19.jpg", accent: "text-yellow-300" },
+  { name: "Diseño 20", type: "image", file: "bg20.jpg", preview: "/backgrounds/bg20.jpg", accent: "text-yellow-300" },
+  { name: "Diseño 21", type: "image", file: "bg21.jpg", preview: "/backgrounds/bg21.jpg", accent: "text-yellow-300" },
+  { name: "Diseño 22", type: "image", file: "bg22.jpg", preview: "/backgrounds/bg22.jpg", accent: "text-yellow-300" },
+  { name: "Diseño 23", type: "image", file: "bg23.jpg", preview: "/backgrounds/bg23.jpg", accent: "text-yellow-300" },
+  { name: "Diseño 24", type: "image", file: "bg24.jpg", preview: "/backgrounds/bg24.jpg", accent: "text-yellow-300" },
+  { name: "Diseño 25", type: "image", file: "bg25.jpg", preview: "/backgrounds/bg25.jpg", accent: "text-yellow-300" },
+  { name: "Diseño 26", type: "image", file: "bg26.jpg", preview: "/backgrounds/bg26.jpg", accent: "text-yellow-300" },
+  { name: "Diseño 27", type: "image", file: "bg27.jpg", preview: "/backgrounds/bg27.jpg", accent: "text-yellow-300" },
+  { name: "Diseño 28", type: "image", file: "bg28.jpg", preview: "/backgrounds/bg28.jpg", accent: "text-yellow-300" },
+  { name: "Diseño 29", type: "image", file: "bg29.jpg", preview: "/backgrounds/bg29.jpg", accent: "text-yellow-300" },
+  { name: "Diseño 30", type: "image", file: "bg30.jpg", preview: "/backgrounds/bg30.jpg", accent: "text-yellow-300" }
 ]
 
 const glassOptions: GlassOption[] = [
@@ -68,21 +84,34 @@ export default function RafflePostCreator() {
     numbers: true
   })
 
-  // Ref for the preview card element
-  const previewCardRef = useRef<HTMLDivElement>(null)
-
-  // Load selected numbers from localStorage on mount
+  // Load all config from localStorage on mount
   useEffect(() => {
-    const savedNumbers = localStorage.getItem('selectedNumbers')
-    if (savedNumbers) {
-      setSelectedNumbers(JSON.parse(savedNumbers))
+    const savedConfig = localStorage.getItem('rifaConfig')
+    if (savedConfig) {
+      const config = JSON.parse(savedConfig)
+      setTitle(config.title || "GRAN RIFA")
+      setSubtitle(config.subtitle || "PREMIOS DOBLES")
+      setDescription(config.description || "¡Primer número en salir→ GANA 🏆\nÚltimo número en salir→ GANA 🏆")
+      setPrice(config.price || "3")
+      setSelectedNumbers(config.selectedNumbers || [])
+      setSelectedBackground(config.selectedBackground || 0)
+      setSelectedGlass(config.selectedGlass || 0)
     }
   }, [])
 
-  // Save selected numbers to localStorage whenever they change
+  // Save all config to localStorage whenever any value changes
   useEffect(() => {
-    localStorage.setItem('selectedNumbers', JSON.stringify(selectedNumbers))
-  }, [selectedNumbers])
+    const config = {
+      title,
+      subtitle,
+      description,
+      price,
+      selectedNumbers,
+      selectedBackground,
+      selectedGlass
+    }
+    localStorage.setItem('rifaConfig', JSON.stringify(config))
+  }, [title, subtitle, description, price, selectedNumbers, selectedBackground, selectedGlass])
 
   const currentBackground = backgroundOptions[selectedBackground]
   const currentGlass = glassOptions[selectedGlass]
@@ -104,72 +133,30 @@ export default function RafflePostCreator() {
     }))
   }
 
-  const downloadImage = async () => {
-    if (!previewCardRef.current) return
+  const resetAllConfig = () => {
+    const confirmed = window.confirm(
+      "¿Estás seguro de que quieres borrar toda la configuración y empezar una nueva rifa desde cero?\n\nEsta acción no se puede deshacer."
+    )
 
-    try {
-      // Wait a bit for any animations/transitions to complete
-      await new Promise(resolve => setTimeout(resolve, 100))
+    if (confirmed) {
+      // Clear localStorage
+      localStorage.removeItem('rifaConfig')
 
-      const canvas = await html2canvas(previewCardRef.current, {
-        backgroundColor: '#000000',
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-        removeContainer: true,
-        foreignObjectRendering: false,
-        imageTimeout: 15000,
-        onclone: (clonedDoc, element) => {
-          // Ensure all fonts are loaded
-          const style = clonedDoc.createElement('style')
-          style.textContent = `
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-            * {
-              font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
-            }
-          `
-          clonedDoc.head.appendChild(style)
-
-          // Ensure the element has the right dimensions
-          element.style.width = previewCardRef.current!.offsetWidth + 'px'
-          element.style.height = previewCardRef.current!.offsetHeight + 'px'
-        }
+      // Reset all state to defaults
+      setTitle("GRAN RIFA")
+      setSubtitle("PREMIOS DOBLES")
+      setDescription("¡Primer número en salir→ GANA 🏆\nÚltimo número en salir→ GANA 🏆")
+      setPrice("3")
+      setSelectedNumbers([])
+      setSelectedBackground(0)
+      setSelectedGlass(0)
+      setSectionsOpen({
+        background: true,
+        config: true,
+        numbers: true
       })
-
-      // Create download link
-      const link = document.createElement('a')
-      link.download = `rifa-${title.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`
-      link.href = canvas.toDataURL('image/png', 0.95)
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-
-    } catch (error) {
-      console.error('Error downloading image:', error)
-
-      // Simpler fallback
-      try {
-        const canvas = await html2canvas(previewCardRef.current, {
-          backgroundColor: '#000000',
-          scale: 1,
-          logging: false,
-          useCORS: false,
-          allowTaint: false
-        })
-
-        const link = document.createElement('a')
-        link.download = `rifa-simple-${Date.now()}.png`
-        link.href = canvas.toDataURL('image/png')
-        link.click()
-
-      } catch {
-        // Final fallback - show instructions
-        alert('Para descargar la imagen:\n1. Haz clic derecho en la imagen de arriba\n2. Selecciona "Guardar imagen como..."\n3. O toma una captura de pantalla')
-      }
     }
   }
-
 
   return (
     <div className="min-h-screen bg-black">
@@ -178,7 +165,6 @@ export default function RafflePostCreator() {
       {/* Preview Panel - Full height on mobile, top position */}
       <div className="p-1 mb-1">
         <Card
-          ref={previewCardRef}
           className={`relative overflow-hidden text-white h-screen ${currentBackground.type === 'gradient' ? `bg-gradient-to-br ${currentBackground.gradient}` : ''}`}
           style={currentBackground.type === 'image' ? {
             backgroundImage: `url(/backgrounds/${currentBackground.file})`,
@@ -232,33 +218,22 @@ export default function RafflePostCreator() {
         </Card>
       </div>
 
-      {/* Download Button */}
-      <div className="px-1 mb-2">
-        <Button
-          onClick={downloadImage}
-          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 text-base"
-        >
-          <Download className="w-5 h-5 mr-2" />
-          Descargar Imagen para Facebook
-        </Button>
-      </div>
-
       {/* Background Options Picker */}
-      <div className="px-1 mb-2">
-        <Card className="bg-white/95 backdrop-blur">
+      <div className="px-1 mb-3">
+        <Card className="bg-slate-800/80 backdrop-blur border border-slate-600/30">
           <CardHeader
-            className="pb-1 pt-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
+            className="pb-1 pt-2 px-3 cursor-pointer hover:bg-slate-700/50 transition-colors"
             onClick={() => toggleSection('background')}
           >
-            <CardTitle className="text-gray-800 flex items-center justify-between text-base">
+            <CardTitle className="text-white flex items-center justify-between text-base">
               <div className="flex items-center gap-2">
                 <ImageIcon className="w-4 h-4" />
                 Fondo del Post
               </div>
               {sectionsOpen.background ? (
-                <ChevronUp className="w-4 h-4 text-gray-500" />
+                <ChevronUp className="w-4 h-4 text-gray-400" />
               ) : (
-                <ChevronDown className="w-4 h-4 text-gray-500" />
+                <ChevronDown className="w-4 h-4 text-gray-400" />
               )}
             </CardTitle>
           </CardHeader>
@@ -295,7 +270,7 @@ export default function RafflePostCreator() {
               </div>
 
               <div className="mt-6">
-                <p className="text-sm font-medium text-gray-700 mb-3">Transparencia del vidrio:</p>
+                <p className="text-sm font-medium text-gray-300 mb-3">Transparencia del vidrio:</p>
                 <div className="flex gap-2 overflow-x-auto pb-2">
                   {glassOptions.map((glass, index) => (
                     <Button
@@ -319,62 +294,62 @@ export default function RafflePostCreator() {
       </div>
 
       {/* Configuration Panel - Full width on mobile */}
-      <div className="px-1 mb-2">
-        <Card className="bg-white/95 backdrop-blur">
+      <div className="px-1 mb-3">
+        <Card className="bg-slate-800/80 backdrop-blur border border-slate-600/30">
           <CardHeader
-            className="pb-1 pt-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
+            className="pb-1 pt-2 px-3 cursor-pointer hover:bg-slate-700/50 transition-colors"
             onClick={() => toggleSection('config')}
           >
-            <CardTitle className="text-gray-800 flex items-center justify-between text-base">
+            <CardTitle className="text-white flex items-center justify-between text-base">
               <span>Configuración de la Rifa</span>
               {sectionsOpen.config ? (
-                <ChevronUp className="w-4 h-4 text-gray-500" />
+                <ChevronUp className="w-4 h-4 text-gray-400" />
               ) : (
-                <ChevronDown className="w-4 h-4 text-gray-500" />
+                <ChevronDown className="w-4 h-4 text-gray-400" />
               )}
             </CardTitle>
           </CardHeader>
           {sectionsOpen.config && (
             <CardContent className="pt-0 px-3 pb-3 space-y-3">
               <div>
-                <label className="text-xs font-medium text-gray-700 mb-1 block">Título Principal</label>
+                <label className="text-xs font-medium text-gray-300 mb-1 block">Título Principal</label>
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="GRAN RIFA"
-                  className="text-sm font-medium h-8"
+                  className="text-sm font-medium h-8 bg-white text-gray-900 border-gray-300"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-gray-700 mb-1 block">Subtítulo</label>
+                <label className="text-xs font-medium text-gray-300 mb-1 block">Subtítulo</label>
                 <Input
                   value={subtitle}
                   onChange={(e) => setSubtitle(e.target.value)}
                   placeholder="PREMIOS DOBLES"
-                  className="h-8 text-sm"
+                  className="h-8 text-sm bg-white text-gray-900 border-gray-300"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-gray-700 mb-1 block">Descripción</label>
+                <label className="text-xs font-medium text-gray-300 mb-1 block">Descripción</label>
                 <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Descripción de los premios..."
                   rows={3}
-                  className="text-sm"
+                  className="text-sm bg-white text-gray-900 border-gray-300"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-gray-700 mb-1 block">Precio por Boleto ($)</label>
+                <label className="text-xs font-medium text-gray-300 mb-1 block">Precio por Boleto ($)</label>
                 <Input
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                   placeholder="3"
                   type="number"
-                  className="h-8 text-sm"
+                  className="h-8 text-sm bg-white text-gray-900 border-gray-300"
                 />
               </div>
             </CardContent>
@@ -383,21 +358,21 @@ export default function RafflePostCreator() {
       </div>
 
       {/* Numbers Grid */}
-      <div className="px-1 pb-2">
-        <Card className="bg-white/95 backdrop-blur">
+      <div className="px-1 pb-3">
+        <Card className="bg-slate-800/80 backdrop-blur border border-slate-600/30">
           <CardHeader
-            className="pb-1 pt-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
+            className="pb-1 pt-2 px-3 cursor-pointer hover:bg-slate-700/50 transition-colors"
             onClick={() => toggleSection('numbers')}
           >
-            <CardTitle className="text-gray-800 flex items-center justify-between text-base">
+            <CardTitle className="text-white flex items-center justify-between text-base">
               <div>
                 <div>Seleccionar Números Vendidos</div>
-                <p className="text-xs text-gray-600 font-normal">Toca los números que ya se han vendido</p>
+                <p className="text-xs text-gray-400 font-normal">Toca los números que ya se han vendido</p>
               </div>
               {sectionsOpen.numbers ? (
-                <ChevronUp className="w-4 h-4 text-gray-500" />
+                <ChevronUp className="w-4 h-4 text-gray-400" />
               ) : (
-                <ChevronDown className="w-4 h-4 text-gray-500" />
+                <ChevronDown className="w-4 h-4 text-gray-400" />
               )}
             </CardTitle>
           </CardHeader>
@@ -436,6 +411,17 @@ export default function RafflePostCreator() {
           </CardContent>
           )}
         </Card>
+      </div>
+
+      {/* Reset Button */}
+      <div className="px-1 pb-4">
+        <Button
+          onClick={resetAllConfig}
+          className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 text-base border border-red-500"
+        >
+          <Trash2 className="w-5 h-5 mr-2" />
+          Borrar Todo y Empezar Nueva Rifa
+        </Button>
       </div>
     </div>
   )
