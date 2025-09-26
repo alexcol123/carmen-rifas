@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { ImageIcon, ChevronDown, ChevronUp, Trash2, Plus, UserPlus, Edit, CheckCircle } from "lucide-react"
+import { ImageIcon, ChevronDown, ChevronUp, Trash2, Plus, UserPlus, Edit, CheckCircle, Trophy } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 
 type BackgroundOption = {
@@ -91,13 +91,15 @@ export default function RafflePostCreator() {
   const [showAddMore, setShowAddMore] = useState(false)
   const [currentCustomer, setCurrentCustomer] = useState<string | null>(null)
   const [editingCustomer, setEditingCustomer] = useState<string | null>(null)
+  const [winnerNumber, setWinnerNumber] = useState<number | null>(null)
   const [selectedBackground, setSelectedBackground] = useState(0)
   const [selectedGlass, setSelectedGlass] = useState(0)
   const [sectionsOpen, setSectionsOpen] = useState({
-    background: true,
-    config: true,
-    numbers: true,
-    soldNumbers: true
+    background: false,
+    config: false,
+    numbers: false,
+    soldNumbers: true,
+    winner: false
   })
 
   // Load all config from localStorage on mount
@@ -113,6 +115,7 @@ export default function RafflePostCreator() {
       setTotalNumbers(config.totalNumbers || 35)
       setTempTotalNumbers(config.totalNumbers || 35)
       setSoldNumbers(config.soldNumbers || [])
+      setWinnerNumber(config.winnerNumber || null)
       setSelectedBackground(config.selectedBackground || 0)
       setSelectedGlass(config.selectedGlass || 0)
     }
@@ -128,11 +131,12 @@ export default function RafflePostCreator() {
       footer,
       totalNumbers,
       soldNumbers,
+      winnerNumber,
       selectedBackground,
       selectedGlass
     }
     localStorage.setItem('rifaConfig', JSON.stringify(config))
-  }, [title, subtitle, description, price, footer, totalNumbers, soldNumbers, selectedBackground, selectedGlass])
+  }, [title, subtitle, description, price, footer, totalNumbers, soldNumbers, winnerNumber, selectedBackground, selectedGlass])
 
   const currentBackground = backgroundOptions[selectedBackground]
   const currentGlass = glassOptions[selectedGlass]
@@ -294,16 +298,18 @@ export default function RafflePostCreator() {
       setTotalNumbers(35)
       setTempTotalNumbers(35)
       setSoldNumbers([])
+      setWinnerNumber(null)
       setCurrentCustomer(null)
       setShowAddMore(false)
       setEditingCustomer(null)
       setSelectedBackground(0)
       setSelectedGlass(0)
       setSectionsOpen({
-        background: true,
-        config: true,
-        numbers: true,
-        soldNumbers: true
+        background: false,
+        config: false,
+        numbers: false,
+        soldNumbers: true,
+        winner: false
       })
     }
   }
@@ -762,7 +768,7 @@ export default function RafflePostCreator() {
                         </span>
                         <button
                           onClick={() => startEditingCustomer(sold.name)}
-                          className="text-white font-medium hover:text-blue-300 underline decoration-dotted underline-offset-2 transition-colors"
+                          className="text-white font-medium hover:text-blue-300 underline decoration-dotted underline-offset-2 transition-colors capitalize"
                         >
                           {sold.name}
                         </button>
@@ -793,6 +799,7 @@ export default function RafflePostCreator() {
         </div>
       )}
 
+
       {/* Customer Summary Panel - Raffle Style */}
       {(() => {
         const customerSummary = soldNumbers.reduce((acc, sold) => {
@@ -820,7 +827,9 @@ export default function RafflePostCreator() {
 
                 {/* Customer List */}
                 <div className={`${currentGlass.bg} backdrop-blur-sm border ${currentGlass.border} rounded-xl p-4 space-y-0.5 max-h-[calc(100vh-120px)] overflow-y-auto`}>
-                  {Object.entries(customerSummary).map(([name, nums], index) => (
+                  {Object.entries(customerSummary)
+                    .sort(([a], [b]) => a.localeCompare(b))
+                    .map(([name, nums], index) => (
                     <div key={name} className="group">
                       <div className="flex items-center py-0.5 gap-4">
                         <div className="w-1/2">
@@ -839,6 +848,146 @@ export default function RafflePostCreator() {
                       )}
                     </div>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )
+      })()}
+
+      {/* Winner Selection Section */}
+      {soldNumbers.length > 0 && (
+        <div className="px-1 mb-3">
+          <Card className="bg-slate-800/80 backdrop-blur border border-slate-600/30">
+            <CardHeader
+              className="pb-1 pt-2 px-3 cursor-pointer hover:bg-slate-700/50 transition-colors"
+              onClick={() => toggleSection('winner')}
+            >
+              <CardTitle className="text-white flex items-center justify-between text-base">
+                <div className="flex items-center gap-2">
+                  <Trophy className="w-4 h-4" />
+                  Felicitar Ganador
+                </div>
+                {sectionsOpen.winner ? (
+                  <ChevronUp className="w-4 h-4 text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                )}
+              </CardTitle>
+            </CardHeader>
+            {sectionsOpen.winner && (
+              <CardContent className="pt-0 px-3 pb-3">
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-medium text-gray-300 mb-1 block">
+                      Número Ganador
+                    </label>
+                    <div className="flex gap-2 items-center">
+                      <Input
+                        type="number"
+                        min="1"
+                        max={totalNumbers}
+                        value={winnerNumber || ''}
+                        onChange={(e) => {
+                          const num = parseInt(e.target.value)
+                          if (!isNaN(num) && num >= 1 && num <= totalNumbers) {
+                            setWinnerNumber(num)
+                          } else if (e.target.value === '') {
+                            setWinnerNumber(null)
+                          }
+                        }}
+                        placeholder={`Ingresa número (1-${totalNumbers})`}
+                        className="h-8 text-sm bg-white text-gray-900 border-gray-300 flex-1"
+                      />
+                      {winnerNumber && (
+                        <Button
+                          onClick={() => setWinnerNumber(null)}
+                          variant="outline"
+                          className="h-8 px-3 text-xs border-red-500/50 hover:bg-red-600 hover:border-red-500 text-red-500 hover:text-white"
+                        >
+                          Limpiar
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  {winnerNumber && (() => {
+                    const winner = soldNumbers.find(sold => sold.number === winnerNumber)
+                    return winner ? (
+                      <div className="bg-green-600/20 border border-green-500/50 rounded-lg p-3">
+                        <p className="text-green-300 text-sm font-medium mb-1">🎉 Ganador Encontrado:</p>
+                        <p className="text-white font-bold capitalize">{winner.name}</p>
+                        <p className="text-green-200 text-xs">Número #{String(winnerNumber).padStart(2, '0')}</p>
+                      </div>
+                    ) : (
+                      <div className="bg-red-600/20 border border-red-500/50 rounded-lg p-3">
+                        <p className="text-red-300 text-sm font-medium">❌ Número no vendido</p>
+                        <p className="text-red-200 text-xs">El número #{String(winnerNumber).padStart(2, '0')} no está asignado a ningún participante</p>
+                      </div>
+                    )
+                  })()}
+                </div>
+              </CardContent>
+            )}
+          </Card>
+        </div>
+      )}
+
+      {/* Winner Congratulations Panel */}
+      {winnerNumber && (() => {
+        const winner = soldNumbers.find(sold => sold.number === winnerNumber)
+        return winner && (
+          <div className="px-1 mb-3">
+            <Card
+              className={`relative overflow-hidden text-white h-screen ${currentBackground.type === 'gradient' ? `bg-gradient-to-br ${currentBackground.gradient}` : ''}`}
+              style={currentBackground.type === 'image' ? {
+                backgroundImage: `url(/backgrounds/${currentBackground.file})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              } : {}}
+            >
+              <CardContent className="flex-1 h-full p-5 flex flex-col justify-center">
+                <div className={`${currentGlass.bg} backdrop-blur-sm border ${currentGlass.border} rounded-xl p-8 text-center space-y-6`}>
+
+                  {/* Main congratulations */}
+                  <div className="space-y-4">
+                    <h2 className={`text-2xl md:text-4xl font-black ${currentBackground.accent} leading-tight`}>
+                      🎉 ¡FELICITACIONES! 🎉
+                    </h2>
+
+                    <div className="space-y-2">
+                      <p className={`text-lg md:text-2xl font-bold ${currentBackground.accent?.replace('300', '200')}`}>
+                        Felicitamos a
+                      </p>
+                      <p className={`text-xl md:text-3xl font-black ${currentBackground.accent} capitalize`}>
+                        {winner.name}
+                      </p>
+                      <p className={`text-lg md:text-2xl font-bold ${currentBackground.accent?.replace('300', '200')}`}>
+                        Ganador(a) de esta semana
+                      </p>
+                    </div>
+
+                    <div className={`${currentGlass.bg} backdrop-blur-sm border ${currentGlass.border} rounded-xl p-4 inline-block`}>
+                      <p className={`text-lg md:text-2xl font-black ${currentBackground.accent}`}>
+                        🏆 Número Ganador: #{String(winnerNumber).padStart(2, '0')} 🏆
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Thank you message */}
+                  <div className="space-y-3 pt-4 border-t border-white/20">
+                    <p className={`text-base md:text-xl font-bold ${currentBackground.accent?.replace('300', '400')}`}>
+                      ¡Gracias a todos los participantes!
+                    </p>
+                    <p className="text-sm md:text-lg text-white/90 font-medium">
+                      Su apoyo hace posible estos premios increíbles
+                    </p>
+                    <p className="text-lg md:text-2xl font-bold">
+                      🌟 ¡Nos vemos en la próxima rifa! 🌟
+                    </p>
+                  </div>
+
                 </div>
               </CardContent>
             </Card>
